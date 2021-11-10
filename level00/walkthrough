@@ -1,0 +1,98 @@
+login : pw
+	level00 : level00
+
+################################################
+GDB
+################################################
+
+=> disas main
+	0x08048497 <+3>:	and    esp,0xfffffff0
+	0x0804849a <+6>:	sub    esp,0x20
+		=> p/d 0x20
+			32
+			# At most 32 bytes allocated on the stack in main
+
+	0x0804849d <+9>:	mov    DWORD PTR [esp],0x80485f0
+	0x080484a4 <+16>:	call   0x8048390 <puts@plt>
+		=> x/s 0x80485f0
+			0x80485f0:	 '*' <repeats 35 times>
+
+	0x080484a9 <+21>:	mov    DWORD PTR [esp],0x8048614
+	0x080484b0 <+28>:	call   0x8048390 <puts@plt>
+		=> x/s 0x8048614
+			0x8048614:	 "* \t     -Level00 -\t\t  *"
+
+	0x080484b5 <+33>:	mov    DWORD PTR [esp],0x80485f0
+	0x080484bc <+40>:	call   0x8048390 <puts@plt>
+		 # Same string as in main+9
+
+	0x080484c1 <+45>:	mov    eax,0x804862c
+	0x080484c6 <+50>:	mov    DWORD PTR [esp],eax
+	0x080484c9 <+53>:	call   0x8048380 <printf@plt>
+		=> x/s 0x804862c
+			0x804862c:	 "Password:"
+	
+	0x080484ce <+58>:	mov    eax,0x8048636
+	0x080484d3 <+63>:	lea    edx,[esp+0x1c]
+	0x080484d7 <+67>:	mov    DWORD PTR [esp+0x4],edx
+	0x080484db <+71>:	mov    DWORD PTR [esp],eax
+	0x080484de <+74>:	call   0x80483d0 <__isoc99_scanf@plt>
+		=> x/s 0x8048636
+			0x8048636:	 "%d"
+		# Stored int in [esp+0x1c], let's call this variable 'n'
+
+	0x080484e3 <+79>:	mov    eax,DWORD PTR [esp+0x1c]
+	0x080484e7 <+83>:	cmp    eax,0x149c
+	0x080484ec <+88>:	jne    0x804850d <main+121>
+		=> p/d 0x149c
+			5276
+		# Compared [esp+0x1c], 'n' with 5276
+		# Jump to main+121 if not equal
+
+	0x080484ee <+90>:	mov    DWORD PTR [esp],0x8048639
+	0x080484f5 <+97>:	call   0x8048390 <puts@plt>
+		=> x/s 0x8048639
+			0x8048639:	 "\nAuthenticated!"
+
+	0x080484fa <+102>:	mov    DWORD PTR [esp],0x8048649
+	0x08048501 <+109>:	call   0x80483a0 <system@plt>
+		=> x/s 0x8048649
+			0x8048649:	 "/bin/sh"
+		# Shell script starts
+
+	0x08048506 <+114>:	mov    eax,0x0
+	0x0804850b <+119>:	jmp    0x804851e <main+138>
+		# Jump to main+138 which is leave instruction, ret value is 0
+
+	0x0804850d <+121>:	mov    DWORD PTR [esp],0x8048651
+	0x08048514 <+128>:	call   0x8048390 <puts@plt>
+		=> x/s 0x8048651
+			0x8048651:	 "\nInvalid Password!"
+		# Jumped here if comparison in main+88 was not equal
+
+	0x08048519 <+133>:	mov    eax,0x1
+
+	0x0804851e <+138>:	leave
+		# Jumped here in main+119, return value = 0 if comparison in main+88 was equal
+		# Else return 1)
+
+################################################
+SUMMARY
+################################################
+
+scanf is called. It stores an int on the stack.
+This int is compared with 5276.
+If the comparison is true, it starts a shell.
+
+################################################
+EXPLOIT
+################################################
+
+=> r
+	=> 5276
+
+=> ./level00
+	=> 5276
+
+=> cat /home/users/level01/.pass
+	uSq2ehEGT6c9S24zbshexZQBXUGrncxn5sD5QfGL

